@@ -12,10 +12,10 @@ from thread.start_workers import start_workers
 def load_resized_icon(path, size=(32, 32)):
     try:
         img = Image.open(path)
-        img = img.resize(size, Image.Resampling.LANCZOS)  # ✅ 최신 방식
+        img = img.resize(size, Image.Resampling.LANCZOS)  # 최신 방식
         return ImageTk.PhotoImage(img)
     except Exception as e:
-        print(f"⚠️ 아이콘 로딩 실패: {path}, {e}")
+        print(f"아이콘 로딩 실패: {path}, {e}")
         return None
 
 class OCRTranslatorApp:
@@ -49,7 +49,7 @@ class OCRTranslatorApp:
         try:
             keyboard.clear_all_hotkeys()
         except AttributeError:
-            print("⚠️ keyboard 모듈 내부 핫키 초기화 실패. 무시하고 계속 진행.")
+            print("keyboard 모듈 내부 핫키 초기화 실패. 무시하고 계속 진행.")
 
         keyboard.add_hotkey(self.toggle_key, OverlayBase.toggle_all_overlays)
         self.load_saved_layout()
@@ -83,10 +83,10 @@ class OCRTranslatorApp:
         api_combo = ttk.Combobox(self.root, textvariable=self.api_var, values=["google", "deepl", "local"])
         api_combo.pack(pady=5)
 
-        # ✅ 콤보박스 선택 시 바로 config 저장
+        # 콤보박스 선택 시 바로 config 저장
         def on_api_change(event):
             self.save_layout()  # 현재 self.api_var 값이 config에 저장됨
-            print(f"✅ 번역 API 변경됨: {self.api_var.get()} → 저장 완료")
+            print(f"번역 API 변경됨: {self.api_var.get()} → 저장 완료")
 
         api_combo.bind("<<ComboboxSelected>>", on_api_change)
 
@@ -199,7 +199,7 @@ class OCRTranslatorApp:
             }
         }
         save_config(data)
-        print("✅ 레이아웃 및 설정 + 위치 저장 완료")
+        print("레이아웃 및 설정 + 위치 저장 완료")
 
     #UI/오버레이 위치 및 설정 값 복원 <- config.json에서 가져오기
     def load_saved_layout(self):
@@ -262,10 +262,10 @@ class OCRTranslatorApp:
         self.key_setting_btn.config(text="입력 대기 중...")
 
         def wait_and_set():
-            event = keyboard.read_event()  # ✅ 딱 1번만 키 입력 대기
+            event = keyboard.read_event()  # 딱 1번만 키 입력 대기
             if event.event_type == "down":  # 키 누른 순간만 반응
                 new_key = event.name.lower()
-                print(f"✅ 새 단축키: {new_key}")
+                print(f"새 단축키: {new_key}")
 
                 keyboard.clear_all_hotkeys()
 
@@ -276,4 +276,4 @@ class OCRTranslatorApp:
                 self.save_layout()
 
         import threading
-        threading.Thread(target=wait_and_set, daemon=True).start()  # 💬 별도 스레드로 키 입력 대기
+        threading.Thread(target=wait_and_set, daemon=True).start()  # 별도 스레드로 키 입력 대기

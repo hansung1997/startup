@@ -59,6 +59,7 @@ def should_translate_now(word_buffer):
         len(word_buffer) >= MIN_WORDS_FOR_TRANSLATION or
         re.search(r"[.?!]", last_words.strip())
     )
+
 #단어 조합이 중복되지 않을 경우에만 캐시에 추가
 def is_unique_combination(words, cache, threshold=0.85):
     sentence = " ".join(words)
