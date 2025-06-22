@@ -27,7 +27,9 @@ Tkinter 오버레이(Overlay) 창에 번역 결과를 실시간/수동 표시
 ├── config.py              # 설정/레이아웃 파일로 저장/불러오기
 ├── utils.py               # 좌표/해상도 데이터 변환 및 계산
 ├────── thread 
-├──      └── start_workers.py # 글자 인식 시 스레드  
+|      └── start_workers.py # 글자 인식 시 스레드  
+├────── icons #아이콘 저장 
+|      └──  ...
 └── README.md              # 문서
 </pre>
 </details>
