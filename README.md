@@ -1,8 +1,6 @@
 # startup
 startup_project
 
-readme.txt 파일로 봐야 깨지지 않습니다.
-
 ---
 
 코드 소개 -
