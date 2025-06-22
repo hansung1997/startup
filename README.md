@@ -17,7 +17,7 @@ Tkinter 오버레이(Overlay) 창에 번역 결과를 실시간/수동 표시
 #디렉터리 구조
 
 <details> 
-OCR_Translator/
+<pre>OCR_Translator/
 ├── main.py                # 진입점, 전체 초기화/실행 관리
 ├── overlay.py             # 오버레이 UI 및 사용자 상호작용
 ├── ocr.py                 # OCR 텍스트 추출 및 전처리 로직
@@ -31,6 +31,7 @@ OCR_Translator/
 ├────── thread 
 ├──      └── start_workers.py # 글자 인식 시 스레드  
 └── README.md              # 문서
+</pre>
 </details>
 ---
 
