@@ -90,6 +90,10 @@ OCR 오탐/누락 케이스: 이미지 품질 향상, 전처리 추가 필요.
 
 ---
 
+[콘솔 명령어]
+
+<details>
+<pre>
 pip install pytesseract
 pip install opencv-python
 pip install numpy
@@ -98,5 +102,6 @@ pip install mss
 pip install keyboard
 pip install pillow
 pip install screeninfo
-
+</pre>
+</details>
 현재는 따로 설치 파일은 없고, 콘솔에서 해당 라이브러리 다운 받고 사용 가능.
