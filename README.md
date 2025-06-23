@@ -88,4 +88,15 @@ OCR 오탐/누락 케이스: 이미지 품질 향상, 전처리 추가 필요.
 생각보다 기능이 많이 추가되어 예상보다 용량이 3~4배로 높아져버려 그 효용성이 퇴색됐음.
 추후에 c++과의 연계로 최적화를 하는 것을 목표.
 
+---
 
+pip install pytesseract
+pip install opencv-python
+pip install numpy
+pip install spacy
+pip install mss
+pip install keyboard
+pip install pillow
+pip install screeninfo
+
+현재는 따로 설치 파일은 없고, 콘솔에서 해당 라이브러리 다운 받고 사용 가능.
