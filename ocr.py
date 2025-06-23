@@ -11,9 +11,18 @@ import time
 from translator import translate_text
 from difflib import SequenceMatcher
 
+'''
+[본인 확인용]
+KEEP_WORDS - 텍스트를 정제할 때(노이즈/불필요 단어 제거), '중요 기능어, 대명사, 접속사, 전치사 등은 무조건 남겨야 함'
+is_complete_sentence - 번역 타이밍에서 "이제 번역해도 되는 완결 문장인가?"를 구두점(., ?, !) 기준으로 체크
+should_translate_now는 함수 재사용/중복의 문제이고, 하나만 써도 된다. 현재는 전역변수 삭제.
+'''
+
 # 캐시 파일 경로
 OCR_CACHE_PATH = "ocr_cache.json" #OCR 결과와 번역 캐시 저장용
 ocr_cache = []
+
+#영어문장 정제/교정에 활용
 KEEP_WORDS = {
     "i", "you", "he", "she", "it", "we", "they", "me", "him", "her",
     "us", "them", "my", "your", "our", "their", "his", "its", "mine",
@@ -52,19 +61,12 @@ nlp = spacy.load("en_core_web_md")  # 중간 크기 모델 (벡터 있음)
 # 사전 준비 (한 번만 처리) 단어들 불러오기.
 valid_word_docs = {word: nlp(word) for word in KEEP_WORDS}
 
-#구두점 또는 최소 단어 수 기준 번역 트리거
-def should_translate_now(word_buffer):
-    last_words = " ".join(word_buffer)
-    return (
-        len(word_buffer) >= MIN_WORDS_FOR_TRANSLATION or
-        re.search(r"[.?!]", last_words.strip())
-    )
-
 #단어 조합이 중복되지 않을 경우에만 캐시에 추가
 def is_unique_combination(words, cache, threshold=0.85):
     sentence = " ".join(words)
     return not any(is_similar(sentence, entry["원문"], threshold) for entry in cache)
 
+#한 문장이 완결(마침표, 물음표, 느낌표 등)로 끝났는지 체크 전치사, 접속사 등으로 끝나면 번역하지 않음
 def is_complete_sentence(text):
     text = text.strip()
     if not text:
@@ -103,10 +105,13 @@ def get_most_similar_word(token, threshold=0.75):
 
     return best_match  # 없으면 None
 
+#OCR 추출 텍스트에서 불필요한 특수문자 제거
 def clean_text(text):
-    # 특수문자 제거 (콤마 유지, 점/기호 제거)
-    #text = re.sub(r"[^가-힣a-zA-Z0-9,\s]", "", text)  # 특수문자 정리
-    
+    '''
+    KEEP_WORDS에 있는 기능어는 무조건 남김
+    Spacy로 유사 단어 자동 교정 지원(활성화 시)
+    '''
+
     #여긴 (, ' ? ! 같은 필수 특수문자는 남겨두고 제거)
     text = re.sub(r"[^가-힣a-zA-Z0-9\s,!?']", "", text)
 
@@ -128,6 +133,7 @@ def clean_text(text):
 
     return " ".join(result)
 
+#입력 이미지(OpenCV) → 그레이스케일 변환 → 블러(잡음 감소) → 이진화 → 리사이즈
 def preprocess_image(cv_image, scale_factor=1.5, lower_color=(0, 0, 0), upper_color=(255, 255, 255)):
 
     if cv_image is None or (hasattr(cv_image, 'size') and cv_image.size == 0):
@@ -186,71 +192,73 @@ def smart_resize(cv_image, max_scale=1.0, min_height_ratio=0.12):
 
 
 
-
+# 이미지 전처리 및 OCR-번역 처리 함수
 def extract_text(image, delay=TRANSLATION_DELAY, scale_factor=1.5, lower_color=(0, 0, 0), upper_color=(255, 255, 255)):
-    global word_buffer, buffer_timestamp, ocr_cache
+    global word_buffer, buffer_timestamp, ocr_cache # 전역 버퍼와 캐시 사용
 
-    now = time.time()
+    now = time.time() # 현재 시각(타임스탬프) 저장
 
-    # 이미지 전처리
-    image = smart_resize(image, max_scale=0.8, min_height_ratio=0.1)
-    processed_image = preprocess_image(image, scale_factor, lower_color, upper_color)
+    # --- 이미지 전처리 단계 ---
+    image = smart_resize(image, max_scale=0.8, min_height_ratio=0.1) # 크기 자동 조정
+    processed_image = preprocess_image(image, scale_factor, lower_color, upper_color) # 밝기/마스크/블러 등 적용
 
     try:
-        config = r'--oem 3 --psm 11'
-        ocr_result = pytesseract.image_to_string(processed_image, lang='eng', config=config).strip()
-        cleaned_text = clean_text(ocr_result)
+        config = r'--oem 3 --psm 11'  # pytesseract 옵션: LSTM 기반 + 단일 텍스트라인 추정
+        ocr_result = pytesseract.image_to_string(processed_image, lang='eng', config=config).strip()  # OCR로 텍스트 추출
+        cleaned_text = clean_text(ocr_result) # 텍스트 전처리(특수문자 정리, 단어 교정 등)
     except Exception as e:
-        print(f"[OCR 오류] {e}")
+        print(f"[OCR 오류] {e}") # 오류 발생 시 출력
+        return None # 실패시 None 반환
+
+    if not cleaned_text: # 텍스트가 비어 있으면
         return None
 
-    if not cleaned_text:
-        return None
+    words = cleaned_text.split() # 정제된 텍스트를 단어 단위로 분할
 
-    words = cleaned_text.split()
-
-    new_words_added = False
+    new_words_added = False # 새 단어 추가 여부 플래그
     for word in words:
-        # 중복 단어 필터링
+        # 중복 단어 버퍼링 방지
         if word not in word_buffer:
-            word_buffer.append(word)
-            new_words_added = True
+            word_buffer.append(word) # 새로운 단어만 버퍼에 추가
+            new_words_added = True # 플래그 활성화
 
     if new_words_added:
-        buffer_timestamp = now
+        buffer_timestamp = now # 마지막 단어 추가 시각 갱신
 
+    # --- 번역 조건 검사: 내부 함수로 정의 ---
     def should_translate_now():
-        if len(word_buffer) >= MIN_WORDS_FOR_TRANSLATION:
+        if len(word_buffer) >= MIN_WORDS_FOR_TRANSLATION: # 단어 개수가 기준 이상이면
             return True
-        if word_buffer and word_buffer[-1][-1] in ".!?":
+        if word_buffer and word_buffer[-1][-1] in ".!?": # 마지막 단어가 문장부호로 끝나면
             return True
-        if now - buffer_timestamp >= delay:
+        if now - buffer_timestamp >= delay: # 버퍼에 머문 시간이 지연 기준 이상이면
             return True
         return False
 
+    # 조건 충족 시 번역 시도
     if should_translate_now():
-        full_sentence = " ".join(word_buffer).strip()
+        full_sentence = " ".join(word_buffer).strip() # 버퍼 전체를 한 문장으로 조립
 
-        # 중복 확인
+        # --- 중복 번역 방지 ---
         is_duplicate = any(is_similar(full_sentence, entry["원문"], threshold=0.85) for entry in ocr_cache)
         if not is_duplicate:
             try:
-                translated = translate_text(full_sentence)
-                print(f"문장 번역 완료: {full_sentence} → {translated}")
-                ocr_cache.append({"원문": full_sentence, "번역문": translated})
-                save_cache_to_file()
+                translated = translate_text(full_sentence) # 번역 API 호출
+                print(f"문장 번역 완료: {full_sentence} → {translated}") # 번역 결과 출력
+                ocr_cache.append({"원문": full_sentence, "번역문": translated}) # 캐시에 저장
+                save_cache_to_file() # 캐시 파일 저장
             except Exception as e:
-                print(f"[번역 오류] {e}")
-            word_buffer.clear()
-            return translated
+                print(f"[번역 오류] {e}") # 번역 과정에서 오류 발생 시 출력
+            word_buffer.clear() # 버퍼 초기화
+            return translated # 번역 결과 반환
         else:
-            print(f"[중복 문장 감지 → 번역 생략]: \"{full_sentence}\"")
-            word_buffer.clear()
+            print(f"[중복 문장 감지 → 번역 생략]: \"{full_sentence}\"") # 중복 시 메시지 출력
+            word_buffer.clear() # 버퍼 초기화
 
-    return None
+    return None # 번역 조건이 안 맞으면 None 반환
 
 def load_cache_from_file():
-    global ocr_cache
+    global ocr_cache #이미 번역된 문장을 담아두는 캐시 리스트 (JSON 파일로 저장/불러오기)
     if os.path.exists(OCR_CACHE_PATH):
         try:
             with open(OCR_CACHE_PATH, "r", encoding="utf-8") as f:
