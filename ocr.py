@@ -15,7 +15,6 @@ from difflib import SequenceMatcher
 [본인 확인용]
 KEEP_WORDS - 텍스트를 정제할 때(노이즈/불필요 단어 제거), '중요 기능어, 대명사, 접속사, 전치사 등은 무조건 남겨야 함'
 is_complete_sentence - 번역 타이밍에서 "이제 번역해도 되는 완결 문장인가?"를 구두점(., ?, !) 기준으로 체크
-should_translate_now는 함수 재사용/중복의 문제이고, 하나만 써도 된다. 현재는 전역변수 삭제.
 '''
 
 # 캐시 파일 경로
@@ -54,12 +53,19 @@ text_buffer = {
     "sentences": [],    # 문장 단위 리스트 "." 마다 나눔
     "start_time": 0
 }
+TRANSLATE_TRIGGER_SENTENCES = 2  # 번역 트리거: 2개 이상의 문장(구두점) 나오면
 
 #spacy로 대조 후 유사한 단어 처리 시 벡터저장.
 nlp = spacy.load("en_core_web_md")  # 중간 크기 모델 (벡터 있음)
 
 # 사전 준비 (한 번만 처리) 단어들 불러오기.
 valid_word_docs = {word: nlp(word) for word in KEEP_WORDS}
+
+def should_translate_now(word_buffer):
+    merged = " ".join(word_buffer)
+    # 완결 구두점 개수 세기
+    sentence_end_count = len(re.findall(r"[.?!]", merged))
+    return sentence_end_count >= TRANSLATE_TRIGGER_SENTENCES
 
 #단어 조합이 중복되지 않을 경우에만 캐시에 추가
 def is_unique_combination(words, cache, threshold=0.85):
@@ -192,9 +198,14 @@ def smart_resize(cv_image, max_scale=1.0, min_height_ratio=0.12):
 
     return cv_image
 
-
 # 이미지 전처리 및 OCR-번역 처리 함수
 def extract_text(image, delay=TRANSLATION_DELAY, scale_factor=1.5, lower_color=(0, 0, 0), upper_color=(255, 255, 255)):
+    #디버그
+    #print(f"[extract_text] 입력 타입: {type(image)}, shape: {getattr(image, 'shape', None)}")
+    #if image is None or not hasattr(image, 'shape'):
+    #    print("[extract_text] 입력 이미지가 None이거나 유효하지 않음!")
+    #    return None
+    
     global word_buffer, buffer_timestamp, ocr_cache # 전역 버퍼와 캐시 사용
 
     now = time.time() # 현재 시각(타임스탬프) 저장
