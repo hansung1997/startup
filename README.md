@@ -12,7 +12,7 @@ Tkinter 오버레이(Overlay) 창에 번역 결과를 실시간/수동 표시
 
 ---
 
-#디렉터리 구조
+#디렉토리 구조
 
 <details> 
 <pre>OCR_Translator/
