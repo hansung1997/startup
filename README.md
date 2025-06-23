@@ -21,7 +21,8 @@ Tkinter 오버레이(Overlay) 창에 번역 결과를 실시간/수동 표시
 ├── ocr.py                 # OCR 텍스트 추출 및 전처리 로직
 ├── capture.py             # 화면 캡처 (mss, numpy, opencv 활용)
 ├── translator.py          # 번역 API (Google, DeepL 등)
-├── local_translator.py    # ----현재 사용 안함----
+├── local_translator.py    # ----현재 사용 안함---- [로컬 처리 부분]
+├── spacy_trans.py         # ----현재 사용 안함---- [로컬 처리 부분]
 ├── select_area.py         # 마우스로 영역 선택 유틸리티
 ├── translation_cache.json # 번역/텍스트 캐시
 ├── config.py              # 설정/레이아웃 파일로 저장/불러오기
