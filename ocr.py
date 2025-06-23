@@ -190,6 +190,7 @@ def smart_resize(cv_image, max_scale=1.0, min_height_ratio=0.12):
         new_size = (int(width * scale), int(height * scale))
         return cv2.resize(cv_image, new_size, interpolation=cv2.INTER_AREA)
 
+    return cv_image
 
 
 # 이미지 전처리 및 OCR-번역 처리 함수
