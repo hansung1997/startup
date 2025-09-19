@@ -6,22 +6,22 @@ Captures a specific area of ​​the screen in real time and performs OCR (opti
 
 <details> 
 <pre>OCR_Translator/
-├── main.py                # 진입점, 전체 초기화/실행 관리
-├── overlay.py             # 오버레이 UI 및 사용자 상호작용
-├── ocr.py                 # OCR 텍스트 추출 및 전처리 로직
-├── capture.py             # 화면 캡처 (mss, numpy, opencv 활용)
-├── translator.py          # 번역 API (Google, DeepL 등)
-├── local_translator.py    # ----현재 사용 안함---- [로컬 처리 부분]
-├── spacy_trans.py         # ----현재 사용 안함---- [로컬 처리 부분]
-├── select_area.py         # 마우스로 영역 선택 유틸리티
-├── translation_cache.json # 번역/텍스트 캐시
-├── config.py              # 설정/레이아웃 파일로 저장/불러오기
-├── utils.py               # 좌표/해상도 데이터 변환 및 계산
+├── main.py                # Entry point, full initialization/execution management
+├── overlay.py             # Overlay UI and user interaction
+├── ocr.py                 # OCR text extraction and preprocessing logic
+├── capture.py             # Screen capture (using mss, numpy, and opencv)
+├── translator.py          # Translation API (Google, DeepL, etc.)
+├── local_translator.py    # ----no use---- [local]
+├── spacy_trans.py         # ----no use---- [local]
+├── select_area.py         # Mouse area selection utility
+├── translation_cache.json # Translation/Text Cache
+├── config.py              # Save/Load as Settings/Layout File
+├── utils.py               # Coordinate/resolution data conversion and calculation
 ├────── thread 
-|      └── start_workers.py # 글자 인식 시 스레드  
-├────── icons #아이콘 저장 
+|      └── start_workers.py # Thread when recognizing characters
+├────── icons #Save Icon
 |      └──  ...
-└── README.md              # 문서
+└── README.md              # document
 </pre>
 </details>
 
