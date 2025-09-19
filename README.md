@@ -1,5 +1,64 @@
-# startup
-startup_project
+Code Introduction [english]-
+
+Captures a specific area of ​​the screen in real time and performs OCR (optical character recognition). Translates automatically or manually extracted text using the AI ​​translation API. Displays translation results in real-time or manually in a Tkinter overlay window. Developed for those who want to view English subtitles in real-time in Korean for games, videos, news, etc.
+
+#Directory Structure
+
+Details
+---
+Usage
+
+After launching, select the desired translation area using the "Select Area" button or the menu. Click the "Translate Selection" button for automatic real-time translation (subtitles, etc.), or the "Translate Selection" button for manual translation. Drag the overlay window to resize it. Change the font size, translation API, transparency, and more with the settings button. Toggle the overlay with shortcut keys like ESC (you can specify a key by pressing the icon in the upper right corner). # Requires two clicks.
+
+--Main Algorithm/Logic Description--
+
+[OCR and Translation Preprocessing]
+
+ocr.py
+
+Image preprocessing (grayscale, blur, binarization, resizing, HSV masking) buffers sentences, checks for completeness (punctuation + prepositions, etc.), and compares translation cache for similarity (SequenceMatcher) to prevent duplicate translations.
+
+translator.py
+
+Selects APIs and processes only the parts that are called.
+
+[UI]
+
+app_ui.py #Main Menu UI
+
+overlay.py
+
+Tkinter-based overlay UI. Supports user operations such as "Settings," "Delete," "Translate," and "Reset Area."
+
+--Future Improvement Directions--
+
+OCR false positives/missing cases: Image quality improvement and additional preprocessing are required. Currently, dividing data into sentences using only ".", "?", and "!" produces significant noise. After checking for word-by-word duplication, attempting translation based on prepositions and conjunctions, excluding the three special characters mentioned above, resulted in less data noise.
+
+Additional translation of long/connected sentences requires natural connection.
+
+Google/DeepL API usage restrictions (403, timeout, etc.) #DeepL is currently unavailable due to expiration. It would be more efficient to develop a classic local translation tool and use it in the future.
+
+Improved native (Windows) shortcut keys/global input events. In the shortcut key assignment section, we found cases where a single key press was required instead of a single press. Therefore, future replacement is inevitable.
+
+When we first started the project, we aimed for a lightweight program. However, we added more features than expected, resulting in a three- to four-fold increase in size, diminishing its utility. Our goal is to further optimize the program through integration with C++.
+
+[Console Command]
+
+Details
+There is currently no separate installation file; the library can be downloaded and used from the console.
+
+<details>
+<pre>
+pip install pytesseract
+pip install opencv-python
+pip install numpy
+pip install spacy
+pip install mss
+pip install keyboard
+pip install pillow
+pip install screeninfo
+</pre>
+</details>
 
 ---
 
